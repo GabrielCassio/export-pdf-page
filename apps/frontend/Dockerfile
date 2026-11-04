@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # ============================================================
 # Dockerfile multi-stage para Frontend e React/NextJS
-# Stack utilizada: Bun + React + Vitest
+# Stack utilizada: Pnpm + React + Vitest
 #
 # Uso:
 #   docker build --target dev   -t app:dev   .
@@ -11,45 +11,47 @@
 # ============================================================
 
 # ---------- Base ----------
-FROM oven/bun:1 AS base
+FROM node:22-bookworm-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
-COPY package.json bun.lockb* ./
+COPY package.json pnpm-lock.json ./
 
 # ---------- Dependencies (todas, incluindo dev) ----------
 FROM base AS deps
-RUN bun install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # ---------- Development ----------
 FROM deps AS dev
 COPY . .
 EXPOSE 3000
-CMD ["bun", "run", "dev"]
+CMD ["pnpm", "dev"]
 
 # ---------- Test ----------
 FROM deps AS test
 COPY . .
-CMD ["bun", "run", "test"]
+CMD ["pnpm", "test"]
 
 # ---------- E2E (Playwright) ----------
 FROM deps AS e2e
 COPY . .
-RUN bunx playwright install --with-deps chromium
+RUN pnpm playwright install --with-deps chromium
 EXPOSE 3000
-CMD ["bun", "run", "test:e2e"]
+CMD ["pnpm", "test:e2e"]
 
 # ---------- Build ----------
 FROM deps AS build
 COPY . .
-RUN bun run build
+RUN pnpm build
 
 # ---------- Production ----------
-FROM oven/bun:1-slim AS prod
+FROM node:22-bookworm-slim AS prod
 WORKDIR /app
-ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
-RUN addgroup --system app && adduser --system --ingroup app app
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 NEXT_TELEMETRY_DISABLED=1
 COPY --from=build --chown=app:app /app/public ./public
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 USER app
 EXPOSE 3000
-CMD ["bun", "run", "server.js"]
+CMD ["pnpm", "exec", "next", "start", "--hostname", "0.0.0.0", "--port", "3000"]

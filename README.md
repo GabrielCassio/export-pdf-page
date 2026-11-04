@@ -1,4 +1,6 @@
-# template-bun
+# Export Cards
+
+O objetivo desse projeto é exportar cards de RPG no formato PDF totalmente estilizado. Isto é, seguindo todas as normas de segurança necessárias,
 
 ## Frontend
 
@@ -8,12 +10,12 @@ end-to-end.
 
 ```bash
 cd apps/frontend
-bun install
-bun run dev
+pnpm install
+pnpm dev
 ```
 
-Comandos úteis: `bun run lint`, `bun run typecheck`, `bun run test`, `bun run test:e2e`,
-`bun run format:check` e `bun run build`.
+Comandos úteis: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`,
+`pnpm format:check` e `pnpm build`.
 
 ## Example API
 
@@ -22,10 +24,9 @@ PostgreSQL. Configure `DATABASE_URL` a partir de
 [`apps/example/.env.example`](./apps/example/.env.example) e execute:
 
 ```bash
-cd apps/example
-bun install
-bun run db:push
-bun run dev
+cd apps/backend
+pnpm install
+pnpm dev
 ```
 
 Os endpoints iniciais são `GET /health`, `GET /users` e `POST /users`. Pelo Nginx, eles ficam
